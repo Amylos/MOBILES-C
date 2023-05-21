@@ -1,0 +1,296 @@
+/*
+ * app.c
+ *
+ *  Created on: 20 déc. 2021
+ *      Author: Garnier
+ */
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#include<SDL2/SDL.h>
+
+#include"mobile.h"
+#include"app.h"
+
+/*********************  Bits Mask Manipulation Macros  *******************/
+#define mBitsSet(f,m)	((f) |= (m))
+#define	mBitsClr(f,m)	((f)&=(~(m)))
+#define	mBitsTgl(f,m)	((f)^=(m))
+#define	mBitsMsk(f,m)	((f)&(m))
+#define	mIsBitsSet(f,m)	(((f)&(m))==(m))
+#define	mIsBitClr(f,m)	(((~(f))&(m))==(m))
+
+/**********  Enumerate Application Status Masks Type Definition ***********/
+typedef enum eappFLagsMasks{
+	ST_APP_ALL_CLEARED		=	0x00000000,
+	ST_APP_INIT_FAILED		=	0x80000000,
+	ST_APP_INIT_INITIATED	=	0x00000001,
+}t_appFLagsMasks;
+
+/********************  Application Structure Definition ******************/
+struct s_app{
+	t_appFLagsMasks	uStatus;
+	SDL_Window		*pWindow;
+	SDL_Renderer	*pRenderer;
+	SDL_TimerID		timerID;
+	SDL_Event		sEvent;
+	/*-----------------------------*/
+	SDL_Rect		sceneArea;
+	t_mobile		*mobiles[APP_MOBILE_NB_MAX];
+	t_mobile		*pMobile;
+	int				iPosX;
+	int 			iPosY;
+	int				iSpeedX;
+	int				iSpeedY;
+	int				iLive;
+	SDL_Color		cMobilesColor;
+	char			buffer[255];
+	int				interval;
+};
+
+/*****************  Animation Callback Function Prototype ****************/
+Uint32 _AppTimerCallBack(Uint32 interval, t_app*pApp);
+Uint32 CallbackFunction(Uint32 interval, void*param);
+
+SDL_TimerID SDL_AddTimer(Uint32 interval, SDL_TimerCallback callback, void*param);
+SDL_bool SDL_RemoveTimer(SDL_TimerID id);
+
+void _AppSceneDraw(SDL_Renderer*pRenderer,SDL_Color colorWindow,SDL_Color colorArea,SDL_Rect*sceneArea);
+
+/*************** Public Application Function Implementation **************/
+
+t_app*AppCreate(void){
+	srand((unsigned int) time(NULL));
+/*****************  Memory Allocation to pApp ***********************/
+	t_app*pApp = (t_app*)malloc(sizeof(t_app));
+
+	if(pApp == NULL){
+		printf("MEMORY ALLOCATION FAILED : AppCreate() : pApp");
+		return pApp;
+	}
+
+	*pApp =(t_app){
+
+		.uStatus 	= ST_APP_ALL_CLEARED,
+		.pWindow 	= NULL,
+		.pRenderer 	= NULL,
+		.timerID	= (int)NULL,
+		.iPosX		= 0,
+		.iPosY		= 0,
+		.iSpeedY	= 0,
+		.iLive		= 0,
+	};
+
+/*************************/
+	if(SDL_Init(SDL_INIT_VIDEO) !=0){
+
+			fprintf(stderr, "SDL video initialization failed %s \n",SDL_GetError());
+			mBitsSet(pApp->uStatus,ST_APP_INIT_FAILED);
+			return pApp;
+		}
+	else{
+		mBitsSet(pApp->uStatus,ST_APP_INIT_INITIATED);
+	}
+
+/*************************  Window Creation ************************/
+	pApp->pWindow = SDL_CreateWindow(
+			APP_WINDOW_TITLE,
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			APP_WINDOW_WIDTH,
+			APP_WINDOW_HEIGHT,
+			SDL_WINDOW_SHOWN
+	);
+	if(pApp->pWindow==NULL){
+		fprintf(stderr, "Failed to create window %s\n",SDL_GetError());
+		mBitsSet(pApp->uStatus,ST_APP_INIT_FAILED);
+		return pApp;
+	}
+
+/*********************** Scene Area Creation **************************/
+
+	pApp->sceneArea=(SDL_Rect){
+		.x=APP_WINDOW_PADDING_HRZ,
+		.y=APP_WINDOW_PADDING_TOP,
+		.w=APP_WINDOW_WIDTH-APP_WINDOW_PADDING_HRZ*2,
+		.h=APP_WINDOW_HEIGHT-APP_WINDOW_PADDING_TOP-APP_WINDOW_PADDING_BOT,
+
+	};
+
+/**********************  Renderer Initialization  *********************/
+
+		pApp->pRenderer = SDL_CreateRenderer(pApp->pWindow, -1, SDL_RENDERER_ACCELERATED);
+		if(pApp->pRenderer == NULL){
+			fprintf(stderr,"Failed to create accelerated renderer. \n");
+			pApp->pRenderer = SDL_CreateRenderer(pApp->pWindow, -1, SDL_RENDERER_SOFTWARE);
+			if(pApp->pRenderer == NULL){
+				fprintf(stderr,"Failed to create software renderer. \n");
+				mBitsSet(pApp->uStatus,ST_APP_INIT_FAILED);
+				return pApp;
+			}
+			fprintf(stderr,"Software renderer created instead!\n");
+		}
+
+/*****************  Draw Window And Scene Area  *********************/
+
+		_AppSceneDraw(pApp->pRenderer,APP_WINDOW_COLOR_BKGND,APP_WINDOW_COLOR_DELIMITING,&pApp->sceneArea);
+
+
+	return (pApp);
+}
+
+
+int AppRun(t_app*pApp){
+
+	for(int k=0;k<APP_MOBILE_NB_MAX;k++){
+		pApp->iPosX		= rand()%(APP_WINDOW_WIDTH-(APP_WINDOW_PADDING_HRZ*2)-APP_MOBILE_SIZE)+APP_WINDOW_PADDING_HRZ;
+		pApp->iPosY		= rand()%(APP_WINDOW_HEIGHT-APP_WINDOW_PADDING_BOT-APP_WINDOW_PADDING_TOP-APP_MOBILE_SIZE)+APP_WINDOW_PADDING_TOP;
+		pApp->iSpeedX	= rand()%(APP_MOBILE_SPEED_MAX)+APP_MOBILE_SPEED_MIN; 	if(pApp->iSpeedX<=APP_MOBILE_SPEED_MAX/2) pApp->iSpeedX*=-1;
+		pApp->iSpeedY	= rand()%(APP_MOBILE_SPEED_MAX)+APP_MOBILE_SPEED_MIN;	if(pApp->iSpeedY<=APP_MOBILE_SPEED_MAX/2) pApp->iSpeedY*=-1;
+		pApp->iLive		= rand()%(30)+10;
+
+		pApp->cMobilesColor=(SDL_Color){
+			.r=rand()%(255-100+1)+100,
+			.g=rand()%(255-100+1)+100,
+			.b=rand()%(255-100+1)+100,
+			.a=255,
+		};
+
+		pApp->pMobile=MobileCreate(pApp->iPosX,pApp->iPosY,APP_MOBILE_SIZE,pApp->iSpeedX,pApp->iSpeedY,pApp->iLive,pApp->cMobilesColor);
+		pApp->mobiles[k]=pApp->pMobile;
+		MobileDraw(pApp->mobiles[k], pApp->pRenderer);
+	}
+
+
+
+	int quit = 0;
+	while(!quit){
+			while(SDL_PollEvent(&pApp->sEvent)){SDL_RenderClear(pApp->pRenderer);
+				//SDL_SetWindowTitle(pApp->pWindow, APP_WINDOW_TITLE);
+				switch(pApp->sEvent.type){
+		case SDL_MOUSEMOTION:
+//		sprintf(pApp->buffer,"%s X : %d  Y : %d",APP_WINDOW_TITLE,pApp->sEvent.motion.x,pApp->sEvent.motion.y);
+//		SDL_SetWindowTitle(pApp->pWindow, pApp->buffer);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			switch(pApp->sEvent.button.button){
+			case SDL_BUTTON_LEFT:
+				break;
+			case SDL_BUTTON_RIGHT:
+				break;
+			default:
+				break;
+			break;
+			}
+			break;
+				case SDL_QUIT:
+					quit = 1;
+					break;
+				case SDL_KEYUP:
+					switch(pApp->sEvent.key.keysym.sym){
+					case SDLK_ESCAPE:
+						pApp->sEvent.type = SDL_QUIT;
+						SDL_PushEvent(&pApp->sEvent);
+						break;
+					default:
+						break;
+					}
+					break;
+				default:
+					break;
+				}
+
+				/***FOR NOW***/
+
+				_AppSceneDraw(pApp->pRenderer,APP_WINDOW_COLOR_BKGND,APP_WINDOW_COLOR_DELIMITING,&pApp->sceneArea);
+
+				MobileMove(pApp->pMobiles,&pApp->sceneArea);
+//			for(int k =0; k<APP_MOBILE_NB_MAX; k++){
+//				MobileMove(pApp->mobiles[k],&pApp->sceneArea);
+//				MobileDraw(pApp->mobiles[k],pApp->pRenderer);
+//				}
+				SDL_RenderPresent(pApp->pRenderer);
+				SDL_Delay(50);
+			}
+		}
+	return 0;
+}
+
+
+t_app*AppDestroy(t_app*pApp){
+
+	if(pApp == NULL) return NULL;
+	pApp->mobiles[0]=MobileDestroy(pApp->pMobile);
+	if(pApp->pRenderer)	SDL_DestroyRenderer(pApp->pRenderer);
+	if(pApp->pWindow)	SDL_DestroyWindow(pApp->pWindow);
+	if(mIsBitsSet(pApp->uStatus,ST_APP_INIT_INITIATED))	SDL_Quit();
+	if(pApp)	free(pApp);
+
+	return NULL;
+}
+
+
+
+
+/****************** Animating Callback Function Implementation  ***************/
+
+Uint32 _AppTimerCallBack(Uint32 interval, t_app*pApp){
+
+	SDL_SetRenderDrawColor(
+			pApp->pRenderer,
+			APP_WINDOW_COLOR_BKGND.r,
+			APP_WINDOW_COLOR_BKGND.g,
+			APP_WINDOW_COLOR_BKGND.b,
+			APP_WINDOW_COLOR_BKGND.a);
+
+	SDL_RenderClear(pApp->pRenderer);
+
+	SDL_RenderPresent(pApp->pRenderer);
+
+	return interval;
+}
+
+
+
+
+Uint32 CallbackFunction(Uint32 interval, void*param){
+
+	return interval;
+}
+SDL_TimerID SDL_AddTimer(Uint32 interval, SDL_TimerCallback callback, void*param){
+
+	return 0; // What return ?
+}
+SDL_bool SDL_RemoveTimer(SDL_TimerID id){
+
+	return id;
+}
+
+
+/************************  Private Function IMPLEMENTATION ***************************/
+
+void _AppSceneDraw(SDL_Renderer*pRenderer,SDL_Color colorWindow,SDL_Color colorArea,SDL_Rect*sceneArea){
+
+			SDL_SetRenderDrawColor(pRenderer, colorWindow.r, colorWindow.g, colorWindow.b, colorWindow.a);
+			SDL_RenderClear(pRenderer);
+
+			SDL_SetRenderDrawColor(pRenderer,colorArea.r,colorArea.g,colorArea.b,colorArea.a);
+			SDL_RenderDrawRect(pRenderer,sceneArea);
+		}
+
+
+
+
+
+
+
+/********************** TRASH **************************/
+
+//					if(IsAskRefresh()){
+//						SDL_SetRenderDrawColor(pApp->pRenderer, SCENE_COLOR_BACKGROUND.r, SCENE_COLOR_BACKGROUND.g, SCENE_COLOR_BACKGROUND.b, SCENE_COLOR_BACKGROUND.a);
+//						SDL_RenderClear(pApp->pRenderer);
+//						DeminDraw(pApp->pDemin, pApp->pRenderer);
+//						SDL_RenderPresent(pApp->pRenderer);
+//						AskRefreshDone();
+//					}

@@ -1,0 +1,73 @@
+/*
+ * mobile.c
+ *
+ *  Created on: 20 déc. 2021
+ *      Author: Garnier
+ */
+
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<SDL2/SDL.h>
+
+#include"mobile.h"
+
+
+
+struct s_mobile{
+
+	SDL_Rect	frame;
+	SDL_Point	speed;
+	SDL_Color	color;
+	int			live;
+};
+
+
+t_mobile*MobileCreate(int iPosX, int iPosY, int iSize,int iSpeedX, int iSpeedY, int iLive,SDL_Color color){
+
+	t_mobile*pMobile = (t_mobile*)malloc(sizeof(t_mobile));
+	if(pMobile==NULL){
+		fprintf(stderr, "MemoryAllocation Failed MobileCreate(): pMobile %s\n",SDL_GetError());
+		return pMobile;
+	}
+
+	pMobile->frame=(SDL_Rect){
+		.x=iPosX,
+		.y=iPosY,
+		.h=iSize,
+		.w=iSize,
+	};
+
+	pMobile->speed=(SDL_Point){
+		.x=iSpeedX,
+		.y=iSpeedY,
+	};
+
+	pMobile->color=color;
+
+	return pMobile;
+}
+
+t_mobile*MobileDestroy(t_mobile*pMobile){
+
+	if(pMobile)	free(pMobile);
+	return NULL;
+}
+
+
+void MobileDraw(const t_mobile*pMobile, SDL_Renderer*pRenderer){
+
+
+	SDL_SetRenderDrawColor(pRenderer,150,150,150,255);
+	SDL_RenderFillRect(pRenderer,&pMobile->frame);
+}
+
+void MobileMove(t_mobile*pMobile, const SDL_Rect*pArea){
+
+}
+void MobileGrowOlder(t_mobile*pMobile){
+
+}
+
+
+

@@ -1,0 +1,25 @@
+/*
+ * mobile.h
+ *
+ *  Created on: 20 déc. 2021
+ *      Author: Garnier
+ */
+
+typedef struct s_mobile t_mobile;
+
+
+t_mobile*MobileCreate(int iPosX, int iPosY, int iSize,int iSpeedX, int iSpeedY, int iLive,SDL_Color color);
+t_mobile*MobileDestroy(t_mobile*pMobile);
+
+void MobileDraw(const t_mobile*pMobile, SDL_Renderer*prenderer);
+
+void MobileMove(t_mobile*pMobile, const SDL_Rect*pArea);
+
+void MobileGrowOlder(t_mobile*pMobile);
+
+
+
+
+
+
+

@@ -1,0 +1,92 @@
+/*
+ * mobile.c
+ *
+ *  Created on: 20 déc. 2021
+ *      Author: Garnier
+ */
+#include<stdio.h>
+#include<stdlib.h>
+#include<SDL2/SDL.h>
+
+#include"mobile.h"
+
+struct s_mobile{
+
+	SDL_Rect	frame;
+	SDL_Point	speed;
+	SDL_Color	color;
+	int			live;
+};
+
+t_mobile*MobileCreate(int iPosX, int iPosY, int iSize,int iSpeedX, int iSpeedY, int iLive,SDL_Color coolor){
+
+	t_mobile*pMobile = (t_mobile*)malloc(sizeof(t_mobile));
+	if(pMobile==NULL){
+		fprintf(stderr, "MemoryAllocation Failed MobileCreate(): pMobile %s\n",SDL_GetError());
+		return pMobile;
+	}
+
+	pMobile->frame=(SDL_Rect){
+		.x=iPosX,
+		.y=iPosY,
+		.h=iSize,
+		.w=iSize,
+	};
+
+	pMobile->speed=(SDL_Point){
+		.x=iSpeedX,
+		.y=iSpeedY,
+	};
+
+	pMobile->color=(SDL_Color){
+		.r=coolor.r,
+		.g=coolor.g,
+		.b=coolor.b,
+		.a=coolor.a,
+	};
+
+	return pMobile;
+}
+
+
+t_mobile*MobileDestroy(t_mobile*pMobile){
+	if(pMobile)	free(pMobile);
+	return NULL;
+}
+
+void MobileDraw(const t_mobile*pMobile, SDL_Renderer*pRenderer){
+
+	SDL_SetRenderDrawColor(pRenderer,pMobile->color.r,pMobile->color.g,pMobile->color.b,pMobile->color.a);
+	SDL_RenderFillRect(pRenderer,&pMobile->frame);
+}
+
+void MobileMove(t_mobile*pMobile, const SDL_Rect*pArea){
+
+	pMobile->frame.x += pMobile->speed.x;
+	pMobile->frame.y += pMobile->speed.y;
+
+	if(pMobile->frame.x < pArea->x){pMobile->frame.x = pArea->x; pMobile->frame.x *=-1; }
+	if(pMobile->frame.y < pArea->y){pMobile->frame.y = pArea->y; pMobile->frame.y *=-1; }
+	if(pMobile->frame.x+ pMobile->frame.w >pArea->w){pMobile->frame.x = pArea->w; pMobile->frame.x *=-1;}
+	if(pMobile->frame.y+ pMobile->frame.h >pArea->h){pMobile->frame.y = pArea->h; pMobile->frame.y *=-1;}
+}
+
+void MobileGrowOlder(t_mobile*pMobile){
+
+
+}
+
+
+/************************TRASH**********************/
+
+
+/*
+if(pMobile->frame.x>=pArea->w){
+		pMobile->frame.x *=-1;
+	}
+	if(pMobile->frame.y>=pArea->h){
+			pMobile->frame.y =pMobile->frame.y*-1;
+			//pMobile->frame.x =pMobile->frame.x*-1;
+		}		//pMobile->frame.y *=-1;
+
+*/

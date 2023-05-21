@@ -1,0 +1,29 @@
+/*
+ * app.h
+ *
+ *  Created on: 20 déc. 2021
+ *      Author: Garnier
+ */
+
+#define APP_WINDOW_TITLE			("Mobiles")
+#define	APP_WINDOW_HEIGHT			(1000)
+#define	APP_WINDOW_WIDTH			(900)
+#define	APP_WINDOW_COLOR_BKGND		(SDL_Color){20,20,20,255}
+#define APP_WINDOW_COLOR_DELIMITING	(SDL_Color){0,230,30,255}
+#define	APP_WINDOW_PADDING_TOP		(50)
+#define	APP_WINDOW_PADDING_BOT		(20)
+#define	APP_WINDOW_PADDING_HRZ		(20)
+
+#define	APP_MOBILE_NB_MAX			(300)
+#define	APP_MOBILE_SIZE				(10)
+
+#define	APP_MOBILE_ANIMATE_RATE		(1000)
+#define APP_MOBILE_SPEED_MAX		(4)
+#define APP_MOBILE_SPEED_MIN		(1)
+
+typedef struct s_app t_app;
+
+t_app*AppCreate(void);
+t_app*AppDestroy(t_app*pApp);
+int AppRun(t_app*pApp);
+

@@ -1,0 +1,89 @@
+Info: Nothing to build for GarnierAndrew
+14:05:04 **** Incremental Build of configuration Debug for project GarnierAndrew ****
+Info: Internal Builder is used for build
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\container.o" "..\\src\\container.c" 
+..\src\container.c:41:1: warning: "/*" within comment [-Wcomment]
+ /*----------NODE COMPONENT----------*/
+  
+..\src\container.c: In function 'NodeNew':
+..\src\container.c:50:24: warning: implicit declaration of function 'malloc' [-Wimplicit-function-declaration]
+  t_node*pNode=(t_node*)malloc(sizeof(t_node));
+                        ^~~~~~
+..\src\container.c:50:24: warning: incompatible implicit declaration of built-in function 'malloc'
+..\src\container.c:50:24: note: include '<stdlib.h>' or provide a declaration of 'malloc'
+..\src\container.c: At top level:
+..\src\container.c:64:45: error: unknown type name 't_ptfV'
+ t_node*NodeDelReturnNext(t_node*pNodeToDel, t_ptfV pDeleteFunc){
+                                             ^~~~~~
+..\src\container.c:82:2: error: unknown type name 'size_t'
+  size_t  m_szCard;
+  ^~~~~~
+..\src\container.c:83:2: error: unknown type name 't_ptfV'
+  t_ptfV  m_pDeleteFunc;
+  ^~~~~~
+..\src\container.c:86:1: error: unknown type name 't_container'
+ t_container*ContainerNew(t_ptfV pDeleteFunc){
+ ^~~~~~~~~~~
+..\src\container.c:86:26: error: unknown type name 't_ptfV'
+ t_container*ContainerNew(t_ptfV pDeleteFunc){
+                          ^~~~~~
+..\src\container.c:96:1: error: unknown type name 't_container'
+ t_container*ContainerDel(t_container *pContainer){
+ ^~~~~~~~~~~
+..\src\container.c:96:26: error: unknown type name 't_container'
+ t_container*ContainerDel(t_container *pContainer){
+                          ^~~~~~~~~~~
+..\src\container.c:101:1: error: unknown type name 't_container'
+ t_container*ContainerFlush(t_container*pContainer){
+ ^~~~~~~~~~~
+..\src\container.c:101:28: error: unknown type name 't_container'
+ t_container*ContainerFlush(t_container*pContainer){
+                            ^~~~~~~~~~~
+..\src\container.c:112:24: error: unknown type name 't_container'
+ void*ContainerPushBack(t_container*pContainer, void*pItem){
+                        ^~~~~~~~~~~
+..\src\container.c:124:25: error: unknown type name 't_container'
+ void*ContainerPushFront(t_container*pContainer, void*pItem){
+                         ^~~~~~~~~~~
+..\src\container.c:137:22: error: unknown type name 't_container'
+ void*ContainerPushAt(t_container*pContainer, void*pItem, size_t szAt){
+                      ^~~~~~~~~~~
+..\src\container.c:137:58: error: unknown type name 'size_t'
+ void*ContainerPushAt(t_container*pContainer, void*pItem, size_t szAt){
+                                                          ^~~~~~
+..\src\container.c:163:21: error: unknown type name 't_container'
+ void*ContainerParse(t_container*pContainer, t_ptfVV pParseFunc, void*pParam){
+                     ^~~~~~~~~~~
+..\src\container.c:163:45: error: unknown type name 't_ptfVV'
+ void*ContainerParse(t_container*pContainer, t_ptfVV pParseFunc, void*pParam){
+                                             ^~~~~~~
+..\src\container.c:174:26: error: unknown type name 't_container'
+ void*ContainerParseDelIf(t_container*pContainer, t_ptfVV pParseFunc, void*pParam){
+                          ^~~~~~~~~~~
+..\src\container.c:174:50: error: unknown type name 't_ptfVV'
+ void*ContainerParseDelIf(t_container*pContainer, t_ptfVV pParseFunc, void*pParam){
+                                                  ^~~~~~~
+..\src\container.c:194:1: error: unknown type name 'size_t'
+ size_t ContainerCard(const t_container*pContainer){
+ ^~~~~~
+..\src\container.c:194:28: error: unknown type name 't_container'
+ size_t ContainerCard(const t_container*pContainer){
+                            ^~~~~~~~~~~
+..\src\container.c: In function 'ContainerCard':
+..\src\container.c:195:2: warning: implicit declaration of function 'assert' [-Wimplicit-function-declaration]
+  assert(pContainer);
+  ^~~~~~
+..\src\container.c:196:19: error: request for member 'm_szCard' in something not a structure or union
+  return pContainer->m_szCard;
+                   ^~
+..\src\container.c:197:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+14:05:22 **** Incremental Build of configuration Debug for project GarnierAndrew ****
+Info: Internal Builder is used for build
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\container.o" "..\\src\\container.c" 
+gcc "-LC:\\MinGW\\lib\\SDL2" -o GarnierAndrew.exe "src\\GarnierAndrew.o" "src\\app.o" "src\\container.o" "src\\mobile.o" -lmingw32 -lSDL2main -lSDL2 
+14:05:57 **** Incremental Build of configuration Debug for project GarnierAndrew ****
+Info: Internal Builder is used for build
+gcc -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\container.o" "..\\src\\container.c" 
+gcc "-LC:\\MinGW\\lib\\SDL2" -o GarnierAndrew.exe "src\\GarnierAndrew.o" "src\\app.o" "src\\container.o" "src\\mobile.o" -lmingw32 -lSDL2main -lSDL2 
